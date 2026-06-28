@@ -4,7 +4,6 @@ import time
 
 model = YOLO("new_idea_ppe.pt")
 video_path = "test_images/testvideo.mp4"
-cap = cv2.VideoCapture(video_path)
 
 violations = {}
 alerted = set()
@@ -15,44 +14,37 @@ def inside_box(point, box):
     head_bottom = y1 + (y2 - y1) * 0.35
     return x1 < x < x2 and y1 < y < head_bottom
 
-if not cap.isOpened():
-    print("Ошибка: Не удалось открыть видео файл.")
-    exit()
+results_stream = model.track(source=video_path,
+                        persist=True,
+                        tracker="botsort.yaml",
+                        show=False,
+                        verbose=False,
+                        stream=True
+                        )
 
-while cap.isOpened():
-    ret, frame = cap.read()
-    
-    if not ret:
-        break
+for result in results_stream:
+    frame = result.orig_img
 
-    results = model.track(source=frame,
-                          persist=True,
-                          tracker="botsort.yaml",
-                          show=False,
-                          verbose=False
-                          )
-    
     helmet_centers = []
     person_id_coords = []
 
-    for result in results:
-        boxes = result.boxes
-        for box in boxes:
-            class_id = int(box.cls.item())
-            class_name = model.names[class_id]
+    boxes = result.boxes
+    for box in boxes:
+        class_id = int(box.cls.item())
+        class_name = model.names[class_id]
 
-            if class_name == "hat":
-                xywh = box.xywh[0].tolist()
-                cx = xywh[0]
-                cy = xywh[1]
-                helmet_centers.append((cx, cy))
-            
-            elif class_name == "person":
-                person_id = int(box.id.item()) if box.id is not None else None
-                if person_id is not None:
-                    xyxy = box.xyxy.tolist()[0]
-                    x1, y1, x2, y2 = map(int, xyxy[:4])
-                    person_id_coords.append((person_id, (x1, y1, x2, y2)))
+        if class_name == "hat":
+            xywh = box.xywh[0].tolist()
+            cx = xywh[0]
+            cy = xywh[1]
+            helmet_centers.append((cx, cy))
+        
+        elif class_name == "person":
+            person_id = int(box.id.item()) if box.id is not None else None
+            if person_id is not None:
+                xyxy = box.xyxy.tolist()[0]
+                x1, y1, x2, y2 = map(int, xyxy[:4])
+                person_id_coords.append((person_id, (x1, y1, x2, y2)))
 
     has_helmet = {p_id: False for p_id, _ in person_id_coords}
 
@@ -109,5 +101,4 @@ while cap.isOpened():
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
 
-cap.release()
 cv2.destroyAllWindows()
