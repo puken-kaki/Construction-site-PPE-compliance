@@ -2,7 +2,7 @@
 import cv2
 from ultralytics import YOLO
 
-model = YOLO("PPE_FINALE_FINALE_BEST.pt")
+model = YOLO("new_idea_ppe.pt")
 cap = cv2.VideoCapture("test_images/testvideo.mp4")
 
 while cap.isOpened():
