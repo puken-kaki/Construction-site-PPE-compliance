@@ -1,5 +1,6 @@
 import cv2
 from ultralytics import YOLO
+import numpy as np
 import time
 
 model = YOLO("new_idea_ppe.pt")
@@ -15,7 +16,7 @@ PERSON_CLS = INV_NAMES.get("person")
 def inside_box(point, box):
     x, y = point
     x1, y1, x2, y2 = box
-    head_bottom = y1 + (y2 - y1) * 0.35
+    head_bottom = y1 + (y2 - y1) * 0.5
     return x1 < x < x2 and y1 < y < head_bottom
 
 results_stream = model.track(source=video_path,
@@ -28,26 +29,33 @@ results_stream = model.track(source=video_path,
 
 for result in results_stream:
     frame = result.orig_img
-
-    helmet_centers = []
-    person_id_coords = []
-
     boxes = result.boxes
-    for box in boxes:
-        class_id = int(box.cls.item())
 
-        if class_id == HAT_CLS:
-            xywh = box.xywh[0].tolist()
-            cx = xywh[0]
-            cy = xywh[1]
-            helmet_centers.append((cx, cy))
-        
-        elif class_id == PERSON_CLS:
-            person_id = int(box.id.item()) if box.id is not None else None
-            if person_id is not None:
-                xyxy = box.xyxy.tolist()[0]
-                x1, y1, x2, y2 = map(int, xyxy[:4])
-                person_id_coords.append((person_id, (x1, y1, x2, y2)))
+    #numpy (gathering data about persons and hats)
+    if boxes is None or len(boxes) == 0:
+        cv2.imshow("Analytics", frame)
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
+        continue
+
+    cls_arr = boxes.cls.cpu().numpy()
+
+    hat_mask = (cls_arr == HAT_CLS)
+    person_mask = (cls_arr == PERSON_CLS) & (boxes.id != None)
+
+    if np.any(hat_mask):
+        hat_xywh = boxes.xywh[hat_mask].cpu().numpy()
+        helmet_centers = hat_xywh[:, :2]
+    else:
+        helmet_centers = []
+
+    if np.any(person_mask):
+        person_xyxy = boxes.xyxy[person_mask].cpu().numpy().astype(int)
+        person_ids = boxes.id[person_mask].cpu().numpy().astype(int)
+        person_id_coords = list(zip(person_ids, person_xyxy))
+    else:
+        person_id_coords = []
+        person_ids = []
 
     has_helmet = {p_id: False for p_id, _ in person_id_coords}
 
