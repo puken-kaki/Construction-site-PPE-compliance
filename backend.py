@@ -1,10 +1,18 @@
 import cv2
 from ultralytics import YOLO
 import numpy as np
-import time
 
 model = YOLO("new_idea_ppe.pt")
 video_path = "test_images/testvideo.mp4"
+
+cap_info = cv2.VideoCapture(video_path)
+fps = cap_info.get(cv2.CAP_PROP_FPS)
+cap_info.release()
+
+if fps == 0 or np.isnan(fps):
+    fps=30
+
+max_frames = fps*5
 
 violations = {}
 alerted = set()
@@ -78,8 +86,6 @@ for result in results_stream:
             if best_person is not None:
                 has_helmet[best_person] = True
 
-    current_time = time.time()
-
     for p_id, p_box in person_id_coords:
         x1, y1, x2, y2 = p_box
 
@@ -87,10 +93,10 @@ for result in results_stream:
             color = (0, 0, 255)
 
             if p_id not in violations:
-                violations[p_id] = current_time
+                violations[p_id] = 1
             else:
-                elapsed = current_time - violations[p_id]
-                if elapsed > 5 and p_id not in alerted:
+                violations[p_id] += 1
+                if violations[p_id] > max_frames and p_id not in alerted:
                     print("VIOLATION!!!")
                     alerted.add(p_id)
         else:
