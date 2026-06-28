@@ -8,6 +8,10 @@ video_path = "test_images/testvideo.mp4"
 violations = {}
 alerted = set()
 
+INV_NAMES = {v: k for k, v in model.names.items()}
+HAT_CLS = INV_NAMES.get("hat")
+PERSON_CLS = INV_NAMES.get("person")
+
 def inside_box(point, box):
     x, y = point
     x1, y1, x2, y2 = box
@@ -31,15 +35,14 @@ for result in results_stream:
     boxes = result.boxes
     for box in boxes:
         class_id = int(box.cls.item())
-        class_name = model.names[class_id]
 
-        if class_name == "hat":
+        if class_id == HAT_CLS:
             xywh = box.xywh[0].tolist()
             cx = xywh[0]
             cy = xywh[1]
             helmet_centers.append((cx, cy))
         
-        elif class_name == "person":
+        elif class_id == PERSON_CLS:
             person_id = int(box.id.item()) if box.id is not None else None
             if person_id is not None:
                 xyxy = box.xyxy.tolist()[0]
