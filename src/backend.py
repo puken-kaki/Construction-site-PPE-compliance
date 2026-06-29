@@ -1,9 +1,18 @@
 import cv2
 from ultralytics import YOLO
 import numpy as np
+import os
+from dotenv import load_dotenv
+import telebot
+from threading import Thread
 
-model = YOLO("new_idea_ppe.pt")
-video_path = "test_images/testvideo.mp4"
+load_dotenv()
+BOT_TOKEN = os.getenv("BOT_TOKEN")
+CHAT_ID = os.getenv("CHAT_ID")
+bot = telebot.TeleBot(BOT_TOKEN)
+
+model = YOLO("../models/new_idea_ppe.pt")
+video_path = "../test_images/testvideo2.mp4"
 
 cap_info = cv2.VideoCapture(video_path)
 fps = cap_info.get(cv2.CAP_PROP_FPS)
@@ -20,6 +29,17 @@ alerted = set()
 INV_NAMES = {v: k for k, v in model.names.items()}
 HAT_CLS = INV_NAMES.get("hat")
 PERSON_CLS = INV_NAMES.get("person")
+
+def send_alert(sending_frame, person_id):
+    def send_logic():
+        try:
+            ret, enc_img = cv2.imencode('.jpg', sending_frame)
+            if ret:
+                image_bytes = enc_img.tobytes()
+                bot.send_photo(CHAT_ID, image_bytes, caption=f"⚠️ Alert! Worker {person_id} has no helmet!")
+        except Exception as e:
+            print(e)
+    Thread(target=send_logic).start()
 
 def inside_box(point, box):
     x, y = point
@@ -98,7 +118,7 @@ for result in results_stream:
             else:
                 violations[p_id] += 1
                 if violations[p_id] > max_frames and p_id not in alerted:
-                    #telegram function
+                    send_alert(frame, p_id)
                     print("VIOLATION!!!")
                     alerted.add(p_id)
         else:

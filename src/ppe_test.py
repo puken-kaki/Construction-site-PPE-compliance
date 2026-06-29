@@ -2,8 +2,8 @@
 import cv2
 from ultralytics import YOLO
 
-model = YOLO("new_idea_ppe.pt")
-cap = cv2.VideoCapture("test_images/testvideo.mp4")
+model = YOLO("../models/new_idea_ppe.pt")
+cap = cv2.VideoCapture("../test_images/testvideo.mp4")
 
 while cap.isOpened():
     success, frame = cap.read()
@@ -25,9 +25,9 @@ cv2.destroyAllWindows()
 import cv2
 from ultralytics import YOLO
 
-model = YOLO("new_idea_ppe.pt")
+model = YOLO("../models/new_idea_ppe.pt")
 
-image_path = "test_images/test.png"
+image_path = "../test_images/test.png"
 results = model(image_path, conf=0.1, verbose=False)
 
 result = results[0]
