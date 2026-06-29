@@ -29,10 +29,11 @@ def inside_box(point, box):
 
 results_stream = model.track(source=video_path,
                         persist=True,
-                        tracker="botsort.yaml",
+                        tracker="bytetrack.yaml",
                         show=False,
                         verbose=False,
-                        stream=True
+                        stream=True,
+                        device=0
                         )
 
 for result in results_stream:
@@ -83,8 +84,8 @@ for result in results_stream:
                     best_distance = dist
                     best_person = p_id
 
-            if best_person is not None:
-                has_helmet[best_person] = True
+        if best_person is not None:
+            has_helmet[best_person] = True
 
     for p_id, p_box in person_id_coords:
         x1, y1, x2, y2 = p_box
@@ -97,6 +98,7 @@ for result in results_stream:
             else:
                 violations[p_id] += 1
                 if violations[p_id] > max_frames and p_id not in alerted:
+                    #telegram function
                     print("VIOLATION!!!")
                     alerted.add(p_id)
         else:
