@@ -4,6 +4,7 @@ import numpy as np
 import os
 from dotenv import load_dotenv
 import telebot
+from telebot import types
 from threading import Thread
 
 load_dotenv()
@@ -12,9 +13,9 @@ CHAT_ID = os.getenv("CHAT_ID")
 bot = telebot.TeleBot(BOT_TOKEN)
 
 model = YOLO("../models/new_idea_ppe.pt")
-video_path = "../test_images/testvideo2.mp4"
+video_path = "test_images/testvideo5.mp4"
 
-cap_info = cv2.VideoCapture(video_path)
+cap_info = cv2.VideoCapture(0)
 fps = cap_info.get(cv2.CAP_PROP_FPS)
 cap_info.release()
 
@@ -30,13 +31,23 @@ INV_NAMES = {v: k for k, v in model.names.items()}
 HAT_CLS = INV_NAMES.get("hat")
 PERSON_CLS = INV_NAMES.get("person")
 
-def send_alert(sending_frame, person_id):
+def send_alert(sending_frames_list, person_id):
     def send_logic():
         try:
-            ret, enc_img = cv2.imencode('.jpg', sending_frame)
-            if ret:
-                image_bytes = enc_img.tobytes()
-                bot.send_photo(CHAT_ID, image_bytes, caption=f"⚠️ Alert! Worker {person_id} has no helmet!")
+            media_group = []
+
+            for i, frame in enumerate(sending_frames_list):
+                ret, enc_img = cv2.imencode('.jpg', frame)
+                if ret:
+                    image_bytes = enc_img.tobytes()
+
+                    if i==0:
+                        media_group.append(types.InputMediaPhoto(image_bytes, caption=f"⚠️ Alert! Worker {person_id} has no helmet!"))
+                    else:
+                        media_group.append(types.InputMediaPhoto(image_bytes))
+
+            if media_group:
+                bot.send_media_group(CHAT_ID, media_group)
         except Exception as e:
             print(e)
     Thread(target=send_logic).start()
@@ -47,7 +58,7 @@ def inside_box(point, box):
     head_bottom = y1 + (y2 - y1) * 0.5
     return x1 < x < x2 and y1 < y < head_bottom
 
-results_stream = model.track(source=video_path,
+results_stream = model.track(source=0,
                         persist=True,
                         tracker="bytetrack.yaml",
                         show=False,
@@ -118,7 +129,14 @@ for result in results_stream:
             else:
                 violations[p_id] += 1
                 if violations[p_id] > max_frames and p_id not in alerted:
-                    send_alert(frame, p_id)
+                    
+                    h, w = frame.shape[:2]
+                    y1_c, y2_c = max(0, y1), min(h, y2)
+                    x1_c, x2_c = max(0, x1), min(w, x2)
+                    cropped_frame = frame[y1_c:y2_c, x1_c:x2_c]
+                    sending_frames_list = [cropped_frame, frame]
+
+                    send_alert(sending_frames_list, p_id)
                     print("VIOLATION!!!")
                     alerted.add(p_id)
         else:
