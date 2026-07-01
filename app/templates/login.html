@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-slate-50/60">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PPE Compliance - Sign In</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/htmx.org@2.0.0"></script>
+</head>
+<body class="h-full flex items-center justify-center p-6 antialiased text-slate-800">
+
+    <div class="w-full max-w-md bg-white border border-slate-200/80 shadow-sm rounded-xl p-8">
+        <!-- Header -->
+        <div class="mb-8">
+            <span class="text-[11px] font-medium uppercase tracking-wider text-slate-500 bg-slate-100 px-2 py-1 rounded-md">
+                Site Safety Analytics
+            </span>
+            <h1 class="text-xl font-semibold tracking-tight text-slate-900 mt-3">Welcome back</h1>
+            <p class="text-sm text-slate-500 mt-1">Sign in to access your safety dashboard.</p>
+        </div>
+
+        <!-- Form with HTMX Integration -->
+        <form hx-post="/login" 
+              hx-target="#form-errors" 
+              hx-swap="innerHTML" 
+              class="space-y-5">
+            
+            <!-- CSRF Token -->
+            {{ form.csrf_token if form.csrf_token else form.hidden_tag() }}
+
+            <!-- Email Address -->
+            <div>
+                <label for="email" class="block text-xs font-medium text-slate-600 uppercase tracking-wider mb-1.5">
+                    Email Address
+                </label>
+                <input type="email" 
+                       id="email" 
+                       name="email" 
+                       required
+                       class="w-full text-sm px-3.5 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/10 transition-all bg-white">
+            </div>
+
+            <!-- Password -->
+            <div>
+                <div class="flex justify-between items-center mb-1.5">
+                    <label for="password" class="block text-xs font-medium text-slate-600 uppercase tracking-wider">
+                        Password
+                    </label>
+                    <a href="/forgot-password" class="text-xs text-indigo-600 font-medium hover:text-indigo-500 transition-colors">Forgot?</a>
+                </div>
+                <input type="password" 
+                       id="password" 
+                       name="password" 
+                       required
+                       class="w-full text-sm px-3.5 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/10 transition-all bg-white">
+            </div>
+
+            <!-- HTMX Error Container -->
+            <div id="form-errors" class="text-xs text-red-600 font-medium space-y-1"></div>
+
+            <!-- Submit Button -->
+            <div class="pt-3">
+                <button type="submit" 
+                        class="w-full bg-slate-900 hover:bg-slate-800 text-white text-sm font-medium py-2.5 px-4 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-slate-900/20 focus:ring-offset-2">
+                    Sign In
+                </button>
+            </div>
+        </form>
+
+        <!-- Footer Link -->
+        <div class="mt-8 pt-5 border-t border-slate-100 text-center">
+            <p class="text-sm text-slate-500">
+                Don't have an account yet? 
+                <a href="/register" class="text-indigo-600 font-medium hover:text-indigo-500 transition-colors">Create an account</a>
+            </p>
+        </div>
+    </div>
+
+</body>
+</html>
