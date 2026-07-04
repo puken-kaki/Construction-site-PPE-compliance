@@ -1,0 +1,15 @@
+{% for event in events %}
+<div class="p-4 bg-red-50/30 hover:bg-red-50/60 transition-colors border-l-2 border-red-500">
+    <div class="flex justify-between items-start">
+        <div>
+            <p class="text-xs font-medium text-slate-900">{{ event.type }}</p>
+            <p class="text-[10px] text-slate-500 mt-0.5">Camera: {{ event.camera_name }} | Person ID: {{ event.person_id }}</p>
+        </div>
+        <span class="text-[10px] font-mono text-slate-400 bg-white border border-slate-200 px-1 py-0.5 rounded">{{ event.time }}</span>
+    </div>
+</div>
+{% else %}
+<div class="p-8 text-center text-xs text-slate-400">
+    No violations recorded during the current session.
+</div>
+{% endfor %}

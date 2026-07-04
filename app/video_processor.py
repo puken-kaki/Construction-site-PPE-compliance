@@ -74,14 +74,14 @@ class CameraStreamWorker(threading.Thread):
         import uuid
         from datetime import datetime, timezone
 
-        os.makedirs('static/uploads/violations', exist_ok=True)
+        os.makedirs('app/static/uploads/violations', exist_ok=True)
 
-        unique_id = uuid.uuid4().hex()
+        unique_id = uuid.uuid4().hex
         crop_name = f"crop_{self.camera_id}_{person_id}_{unique_id}.jpg"
         full_name = f"full_{self.camera_id}_{person_id}_{unique_id}.jpg"
 
-        crop_path = f"static/uploads/violations/{crop_name}"
-        full_path = f"static/uploads/violations/{full_name}"
+        crop_path = f"app/static/uploads/violations/{crop_name}"
+        full_path = f"app/static/uploads/violations/{full_name}"
 
         cv2.imwrite(crop_path, cropped_frame)
         cv2.imwrite(full_path, full_frame)
@@ -215,7 +215,7 @@ class CameraStreamWorker(threading.Thread):
 
             ret, jpeg = cv2.imencode('.jpg', frame)
             if ret:
-                global_frames[self.camera_id] = jpeg.tobytes
+                global_frames[self.camera_id] = jpeg.tobytes()
                 time.sleep(0.01)
 
 

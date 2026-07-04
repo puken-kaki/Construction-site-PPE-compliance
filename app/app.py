@@ -1,11 +1,10 @@
 from flask import Flask, render_template, redirect, url_for, Response, flash
 from extensions import db, login_manager, login_user, current_user, login_required, logout_user
 from forms import RegistrationForm, LoginForm, CameraForm
-from video_processor import CameraStreamWorker, global_frames
+from video_processor import CameraStreamWorker, global_frames, active_violations_event_list
 from dotenv import load_dotenv
 from pathlib import Path
 from flask_bcrypt import Bcrypt
-import threading
 import time
 import os
 
@@ -52,9 +51,7 @@ def gen_frames(camera_id):
     while True:
         frame = global_frames.get(camera_id)
         if frame is not None:
-            yield (b'--frame\r\n'
-                   b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n\r\n')
-        else:
+            yield (b'--frame\r\nContent-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
             time.sleep(0.1)
 
         
@@ -96,6 +93,12 @@ def login():
             return redirect(url_for('index'))    
     return render_template("login.html", title="Login", form=form)
 
+@app.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    return redirect(url_for('login'))
+
 @app.route('/settings', methods=["GET", "POST"])
 @login_required
 def settings():
@@ -127,6 +130,29 @@ def settings():
     my_cameras = Camera.query.filter_by(user_id=current_user.id).all()
     return render_template('settings.html', form=form, cameras=my_cameras)
 
+@app.route('/camera/delete/<int:camera_id>', methods=['POST'])
+@login_required
+def delete_camera(camera_id):
+    camera = Camera.query.get_or_404(camera_id)
+    if camera.user_id == current_user.id:
+        if camera_id in camera_threads:
+            camera_threads[camera_id].stop()
+            camera_threads[camera_id].join()
+            del camera_threads[camera_id]
+
+        if camera_id in global_frames:
+            del global_frames[camera_id]
+
+        db.session.delete(camera)
+        db.session.commit()
+
+    return '', 200
+
+@app.route('/api/live_violations')
+@login_required
+def live_violations():
+    events = list(reversed(active_violations_event_list))[:20]
+    return render_template('_violation_row.html', events=events)
 
 
 @login_manager.user_loader

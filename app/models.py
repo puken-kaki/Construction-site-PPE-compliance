@@ -37,4 +37,4 @@ class Camera(db.Model):
     is_active = db.Column(db.Boolean, default=True, nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
 
-    violations = db.relationship('Violation', backref='camera', lazy=True)
+    violations = db.relationship('Violation', backref='camera', lazy=True, cascade='all, delete-orphan')
