@@ -15,3 +15,8 @@ class LoginForm(FlaskForm):
     email = StringField('Электронный адрес', validators=[DataRequired(), Email()])
     password = PasswordField('Пароль', validators=[DataRequired(), Length(min=8)])
     submit = SubmitField('Войти')
+
+class CameraForm(FlaskForm):
+    name = StringField('Camera name', validators=[DataRequired(), Length(min=2, max=100)])
+    video_source = StringField('Live video source (RTSP URL)', validators=[DataRequired()])
+    submit = SubmitField('Add camera')

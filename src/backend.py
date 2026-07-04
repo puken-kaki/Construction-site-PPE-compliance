@@ -15,7 +15,7 @@ bot = telebot.TeleBot(BOT_TOKEN)
 model = YOLO("../models/new_idea_ppe.pt")
 video_path = "test_images/testvideo5.mp4"
 
-cap_info = cv2.VideoCapture(0)
+cap_info = cv2.VideoCapture(video_path)
 fps = cap_info.get(cv2.CAP_PROP_FPS)
 cap_info.release()
 
@@ -58,7 +58,7 @@ def inside_box(point, box):
     head_bottom = y1 + (y2 - y1) * 0.5
     return x1 < x < x2 and y1 < y < head_bottom
 
-results_stream = model.track(source=0,
+results_stream = model.track(source=video_path,
                         persist=True,
                         tracker="bytetrack.yaml",
                         show=False,
