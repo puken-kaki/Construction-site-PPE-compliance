@@ -3,6 +3,5 @@ venv/
 __pycache__/
 *.mp4
 test_images/
-*.pt
 instance/
 app/static/uploads
