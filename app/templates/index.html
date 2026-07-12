@@ -1,48 +1,58 @@
 {% extends 'base.html' %}
 
-{% block title %}Monitoring Dashboard{% endblock %}
-
 {% block content %}
-<div class="space-y-6">
-    <div>
-        <h1 class="text-xl font-semibold tracking-tight text-slate-900">Real-Time Cameras</h1>
-        <p class="text-xs text-slate-500 mt-1">Automated detection of personnel missing protective helmets.</p>
-    </div>
-
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
-        <!-- Video Streams Grid -->
-        <div class="lg:col-span-2 space-y-4">
-            {% if cameras %}
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {% for camera in cameras %}
-                        <div class="bg-white border border-slate-200 overflow-hidden shadow-sm">
-                            <div class="p-3 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
-                                <span class="text-xs font-medium text-slate-700">{{ camera.name }}</span>
-                                <span class="inline-flex items-center rounded-full bg-emerald-50 px-1.5 py-0.5 text-[10px] font-medium text-emerald-700 border border-emerald-200/50">Active</span>
-                            </div>
-                            <div class="aspect-video bg-black relative flex items-center justify-center">
-                                <img src="{{ url_for('video_feed', camera_id=camera.id) }}" alt="Stream {{ camera.name }}" class="w-full h-full object-contain">
-                            </div>
-                        </div>
-                    {% endfor %}
-                </div>
-            {% else %}
-                <div class="border-2 border-dashed border-slate-200 p-12 text-center">
-                    <p class="text-sm text-slate-500">No active cameras found. Add them in the settings panel.</p>
-                </div>
-            {% endif %}
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    
+    <div class="lg:col-span-2 space-y-6">
+        <div class="flex items-center justify-between border-b border-zinc-800 pb-3">
+            <h1 class="text-xl font-semibold tracking-tight text-zinc-200">Active Cameras</h1>
+            <span class="text-xs font-mono text-zinc-500">{{ cameras|length }} stream(s) connected</span>
         </div>
 
-        <!-- Violations Feed, updated via HTMX Polling every 3 seconds -->
-        <div class="bg-white border border-slate-200 shadow-sm">
-            <div class="p-4 border-b border-slate-100">
-                <h2 class="text-sm font-semibold tracking-wide uppercase text-slate-800">Recent Violations</h2>
+        {% if cameras %}
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {% for camera in cameras %}
+                    <div class="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden group">
+                        <div class="bg-zinc-950/80 px-3 py-2 border-b border-zinc-800 flex items-center justify-between font-mono text-xs">
+                            <span class="text-zinc-300 truncate">{{ camera.name }}</span>
+                            <span class="text-emerald-500 flex items-center gap-1.5">
+                                <span class="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span> LIVE
+                            </span>
+                        </div>
+                        <div class="relative bg-zinc-950 aspect-video flex items-center justify-center">
+                            <img src="{{ url_for('video_feed', camera_id=camera.id) }}" alt="{{ camera.name }}" class="w-full h-full object-cover">
+                        </div>
+                    </div>
+                {% endfor %}
             </div>
-            <div class="divide-y divide-slate-100 max-h-[500px] overflow-y-auto" 
-                 hx-get="/api/live_violations" 
-                 hx-trigger="every 3s" 
-                 hx-swap="innerHTML">
-                <div class="p-4 text-center text-xs text-slate-400">Waiting for telemetry data...</div>
+        {% else %}
+            <div class="border border-dashed border-zinc-800 rounded-lg p-12 text-center">
+                <p class="text-sm text-zinc-500">No active camera streams detected.</p>
+                <a href="{{ url_for('settings') }}" class="mt-4 inline-flex items-center text-xs font-mono text-amber-500 hover:underline">
+                    + Add Cameras
+                </a>
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="space-y-6">
+        <div class="flex items-center justify-between border-b border-zinc-800 pb-3">
+            <h2 class="text-xl font-semibold tracking-tight text-zinc-200">Activity Log</h2>
+            <span class="h-2 w-2 rounded-full bg-amber-500 animate-ping"></span>
+        </div>
+
+        <div class="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden font-mono text-xs">
+            <div class="bg-zinc-950 px-3 py-2 border-b border-zinc-800 text-zinc-400 flex justify-between">
+                <span>Event Trace</span>
+                <span>Interval: 2s</span>
+            </div>
+            <div 
+                class="p-2 space-y-1 divide-y divide-zinc-850 max-h-[500px] overflow-y-auto"
+                hx-get="{{ url_for('live_violations') }}"
+                hx-trigger="every 2s"
+                hx-swap="innerHTML"
+            >
+                <div class="text-zinc-600 p-2 text-center italic">Initializing stream pipeline...</div>
             </div>
         </div>
     </div>

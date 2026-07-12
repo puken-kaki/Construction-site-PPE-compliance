@@ -1,48 +1,54 @@
 <!DOCTYPE html>
-<html lang="ru" class="h-full bg-slate-50">
+<html lang="en" class="h-full bg-zinc-950 text-zinc-100 antialiased">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}PPE Monitoring{% endblock %}</title>
+    <title>{% if title %}{{ title }} - Monitor{% else %}Monitor{% endif %}</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/htmx.org@2.0.0"></script>
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
 </head>
-<body class="h-full flex flex-col text-slate-900 antialiased font-sans">
+<body class="h-full flex flex-col font-sans selection:bg-amber-500/30 selection:text-amber-200">
 
-    {% if current_user.is_authenticated %}
-    <nav class="border-b border-slate-200 bg-white">
-        <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div class="flex h-16 justify-between items-center">
-                <div class="flex items-center space-x-8">
-                    <span class="text-sm font-bold tracking-wider uppercase text-slate-800">PPE.Control</span>
-                    <div class="hidden sm:flex sm:space-x-4">
-                        <a href="{{ url_for('index') }}" class="px-3 py-2 text-sm font-medium {% if request.endpoint == 'index' %}text-slate-900 border-b-2 border-slate-900{% else %}text-slate-500 hover:text-slate-700{% endif %}">Home</a>
-                        <a href="{{ url_for('settings') }}" class="px-3 py-2 text-sm font-medium {% if request.endpoint == 'settings' %}text-slate-900 border-b-2 border-slate-900{% else %}text-slate-500 hover:text-slate-700{% endif %}">Settings</a>
-                    </div>
-                </div>
-                <div class="flex items-center space-x-4">
-                    <span class="text-xs text-slate-500 bg-slate-100 px-2.5 py-1 rounded">{{ current_user.name }}</span>
-                    <a href="{{ url_for('logout') }}" class="text-xs text-slate-400 hover:text-slate-600">Logout</a>
-                </div>
+    <header class="border-b border-zinc-800 bg-zinc-900/50 backdrop-blur-md sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-4 h-14 flex items-center justify-between">
+            <div class="flex items-center space-x-4">
+                <a href="{{ url_for('index') }}" class="font-mono tracking-wider font-bold text-zinc-200 hover:text-white transition-colors">
+                    PPE MONITORING
+                </a>
+                {% if current_user.is_authenticated %}
+                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-zinc-800 text-zinc-400 font-mono">
+                    ONLINE
+                </span>
+                {% endif %}
             </div>
+            <nav class="flex items-center space-x-6 text-sm font-medium">
+                {% if current_user.is_authenticated %}
+                    <a href="{{ url_for('index') }}" class="text-zinc-400 hover:text-zinc-100 transition-colors">Feeds</a>
+                    <a href="{{ url_for('settings') }}" class="text-zinc-400 hover:text-zinc-100 transition-colors">Settings</a>
+                    <a href="{{ url_for('logout') }}" class="text-zinc-500 hover:text-zinc-300 transition-colors font-mono">Logout</a>
+                {% else %}
+                    <a href="{{ url_for('login') }}" class="text-zinc-400 hover:text-zinc-100 transition-colors">Log In</a>
+                    <a href="{{ url_for('register') }}" class="text-zinc-400 hover:text-zinc-100 transition-colors">Register</a>
+                {% endif %}
+            </nav>
         </div>
-    </nav>
-    {% endif %}
+    </header>
 
-    <main class="flex-1">
-        <div class="mx-auto max-w-7xl p-4 sm:p-6 lg:p-8">
-            {% with messages = get_flashed_messages() %}
-                {% if messages %}
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8">
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <div class="mb-6 space-y-2">
                     {% for message in messages %}
-                        <div class="mb-4 p-4 border-l-4 border-slate-700 bg-slate-100 text-sm text-slate-700" role="alert">
-                            {{ message }}
+                        <div class="p-3 bg-zinc-900 border border-zinc-800 text-zinc-300 rounded-md text-sm font-mono flex items-center space-x-2">
+                            <span class="h-2 w-2 rounded-full bg-amber-500 animate-pulse"></span>
+                            <span>{{ message }}</span>
                         </div>
                     {% endfor %}
-                {% endif %}
-            {% endwith %}
+                </div>
+            {% endif %}
+        {% endwith %}
 
-            {% block content %}{% endblock %}
-        </div>
+        {% block content %}{% endblock %}
     </main>
 
 </body>

@@ -74,7 +74,9 @@ class CameraStreamWorker(threading.Thread):
         import uuid
         from datetime import datetime, timezone
 
-        os.makedirs('app/static/uploads/violations', exist_ok=True)
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        violations_dir = os.path.join(base_dir, 'static', 'uploads', 'violations')
+        os.makedirs(violations_dir, exist_ok=True)
 
         unique_id = uuid.uuid4().hex
         crop_name = f"crop_{self.camera_id}_{person_id}_{unique_id}.jpg"
