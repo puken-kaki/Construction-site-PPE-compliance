@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="space-y-6">
+    
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-zinc-800 pb-5">
+        <div>
+            <h1 class="text-xl font-semibold tracking-tight text-zinc-200">Incident Logs</h1>
+            <p class="text-xs font-mono text-zinc-500 mt-0.5">List of recorded safety violations</p>
+        </div>
+        
+        <form 
+            hx-get="{{ url_for('violation_logs') }}" 
+            hx-target="#violation-table-body" 
+            hx-trigger="change from:select, change from:input, keyup from:input delay:400ms"
+            class="flex flex-wrap items-center gap-3 font-mono text-xs text-zinc-400"
+        >
+            <div class="flex flex-col gap-1">
+                <label class="text-[10px] uppercase text-zinc-600">Camera</label>
+                <select name="camera_id" class="bg-zinc-900 border border-zinc-800 rounded-md px-3 py-1.5 focus:outline-none focus:border-zinc-700 text-zinc-200 cursor-pointer">
+                    <option value="">All Cameras</option>
+                    {% for camera in cameras %}
+                        <option value="{{ camera.id }}">{{ camera.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="flex flex-col gap-1">
+                <label class="text-[10px] uppercase text-zinc-600">Date</label>
+                <input 
+                    type="date" 
+                    name="date" 
+                    class="bg-zinc-900 border border-zinc-800 rounded-md px-3 py-1.5 focus:outline-none focus:border-zinc-700 text-zinc-200 [color-scheme:dark]"
+                >
+            </div>
+        </form>
+    </div>
+
+    <div class="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-sm font-mono">
+                <thead class="bg-zinc-950 text-zinc-500 text-xs border-b border-zinc-800">
+                    <tr>
+                        <th class="px-6 py-3 font-medium">Photo</th>
+                        <th class="px-6 py-3 font-medium">Date & Time</th>
+                        <th class="px-6 py-3 font-medium">Camera ID</th>
+                        <th class="px-6 py-3 font-medium">Violation Type</th>
+                        <th class="px-6 py-3 text-right">Details</th>
+                    </tr>
+                </thead>
+                <tbody id="violation-table-body" class="divide-y divide-zinc-800 text-zinc-300">
+                    {% include '_violation_table_rows.html' %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

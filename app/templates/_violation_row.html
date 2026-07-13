@@ -2,11 +2,11 @@
     {% for event in events %}
         <div class="p-2 hover:bg-zinc-850/50 transition-colors flex flex-col space-y-1">
             <div class="flex items-center justify-between">
-                <span class="text-amber-500 font-bold tracking-wide">[ALERT // VIOLATION]</span>
+                <span class="text-amber-500 font-bold tracking-wide">NEW VIOLATION</span>
                 <span class="text-zinc-500 text-[10px]">{{ event.get('timestamp', '') }}</span>
             </div>
             <p class="text-zinc-300 text-xs">
-                Camera '{{ event.get('camera_name') }}' — <span class="text-zinc-400">{{ event.get('details', 'Anomalous event flagged') }}</span>
+                Camera '{{ event.get('camera_name') }}' — <span class="text-zinc-400">{{ event.get('details', 'Safety rule broken') }}</span>
             </p>
         </div>
     {% endfor %}

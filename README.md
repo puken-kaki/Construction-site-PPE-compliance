@@ -70,7 +70,3 @@ Execute the main script. The SQLite database file (site.db) will be initialized 
 python app.py
 ```
 The application will be accessible at http://127.0.0.1:5000.
-
-## Model Weights
-
-The trained model is not included in this repository due to file size.

@@ -6,7 +6,7 @@
     <div class="lg:col-span-2 space-y-6">
         <div class="flex items-center justify-between border-b border-zinc-800 pb-3">
             <h1 class="text-xl font-semibold tracking-tight text-zinc-200">Active Cameras</h1>
-            <span class="text-xs font-mono text-zinc-500">{{ cameras|length }} stream(s) connected</span>
+            <span class="text-xs font-mono text-zinc-500">{{ cameras|length }} camera(s) online</span>
         </div>
 
         {% if cameras %}
@@ -27,7 +27,7 @@
             </div>
         {% else %}
             <div class="border border-dashed border-zinc-800 rounded-lg p-12 text-center">
-                <p class="text-sm text-zinc-500">No active camera streams detected.</p>
+                <p class="text-sm text-zinc-500">No active cameras found.</p>
                 <a href="{{ url_for('settings') }}" class="mt-4 inline-flex items-center text-xs font-mono text-amber-500 hover:underline">
                     + Add Cameras
                 </a>
@@ -43,8 +43,8 @@
 
         <div class="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden font-mono text-xs">
             <div class="bg-zinc-950 px-3 py-2 border-b border-zinc-800 text-zinc-400 flex justify-between">
-                <span>Event Trace</span>
-                <span>Interval: 2s</span>
+                <span>Recent Updates</span>
+                <span>Updates every 2s</span>
             </div>
             <div 
                 class="p-2 space-y-1 divide-y divide-zinc-850 max-h-[500px] overflow-y-auto"
@@ -52,7 +52,7 @@
                 hx-trigger="every 2s"
                 hx-swap="innerHTML"
             >
-                <div class="text-zinc-600 p-2 text-center italic">Initializing stream pipeline...</div>
+                <div class="text-zinc-600 p-2 text-center italic">Loading...</div>
             </div>
         </div>
     </div>

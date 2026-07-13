@@ -1,4 +1,4 @@
-from flask import Flask, render_template, redirect, url_for, Response, flash
+from flask import Flask, render_template, redirect, url_for, Response, flash, request
 from extensions import db, login_manager, login_user, current_user, login_required, logout_user
 from forms import RegistrationForm, LoginForm, CameraForm
 from video_processor import CameraStreamWorker, global_frames, active_violations_event_list
@@ -129,6 +129,26 @@ def settings():
     
     my_cameras = Camera.query.filter_by(user_id=current_user.id).all()
     return render_template('settings.html', form=form, cameras=my_cameras)
+
+@app.route('/violation_logs')
+@login_required
+def violation_logs():
+    query = Violation.query.filter_by(user_id=current_user.id)
+    
+    camera_id = request.args.get('camera_id', type=int)
+    selected_date = request.args.get('date', type=str)
+
+    if camera_id:
+        query = query.filter_by(camera_id=camera_id)
+    if selected_date:
+        query = query.filter(db.func.date(Violation.violation_time) == selected_date)
+        
+    violations = query.order_by(Violation.violation_time.desc()).all()
+    user_cameras = Camera.query.filter_by(user_id=current_user.id).all()
+
+    if request.headers.get('HX-Request'):
+        return render_template('_violation_table_rows.html', violations=violations)
+    return render_template('violation_logs.html', violations=violations, cameras=user_cameras)
 
 @app.route('/camera/delete/<int:camera_id>', methods=['POST'])
 @login_required
