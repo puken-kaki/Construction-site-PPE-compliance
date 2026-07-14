@@ -1,10 +1,11 @@
 from flask import Flask, render_template, redirect, url_for, Response, flash, request
-from extensions import db, login_manager, login_user, current_user, login_required, logout_user
+from extensions import db, login_manager, login_user, current_user, login_required, logout_user, func
 from forms import RegistrationForm, LoginForm, CameraForm
 from video_processor import CameraStreamWorker, global_frames, active_violations_event_list
 from dotenv import load_dotenv
 from pathlib import Path
 from flask_bcrypt import Bcrypt
+from datetime import date, timedelta
 import time
 import os
 
@@ -25,7 +26,7 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db.init_app(app)
 login_manager.init_app(app)
 bcrypt = Bcrypt(app)
-from models import User, Violation, Camera
+from models import User, Violation, Camera, DailyStat
 
 camera_threads = {}
 
@@ -149,6 +150,49 @@ def violation_logs():
     if request.headers.get('HX-Request'):
         return render_template('_violation_table_rows.html', violations=violations)
     return render_template('violation_logs.html', violations=violations, cameras=user_cameras)
+
+@app.route('/analytics')
+@login_required
+def analytics():
+    today = date.today()
+    today_stats = DailyStat.query.filter_by(date=today).all()
+
+    today_compliant = sum(s.compliant_count for s in today_stats)
+    today_violations = sum(s.violation_count for s in today_stats)
+    today_total = today_compliant + today_violations
+
+    today_compliance_rate = 100.0
+    if today_total > 0:
+        today_compliance_rate = round((today_compliant / today_total) * 100, 1)
+    
+    seven_days_ago = today - timedelta(days=6)
+    weekly_stats = db.session.query(
+        DailyStat.date,
+        func.sum(DailyStat.compliant_count).label('compliant'),
+        func.sum(DailyStat.violation_count).label('violations')
+    ).filter(DailyStat.date >= seven_days_ago)\
+    .group_by(DailyStat.date)\
+    .order_by(DailyStat.date).all()
+
+    chart_dates = []
+    chart_compliance_percentages = []
+    chart_violations = []
+
+    for s in weekly_stats:
+        chart_dates.append(s.date.strftime("%A"))
+        total = s.compliant + s.violations
+        rate = round((s.compliant / total) * 100, 1) if total > 0 else 100.0
+        chart_compliance_percentages.append(rate)
+        chart_violations.append(s.violations)
+
+    return render_template(
+        'analytics.html',
+        today_compliance_rate=today_compliance_rate,
+        today_violations=today_violations,
+        chart_dates=chart_dates,
+        chart_compliance_percentages=chart_compliance_percentages,
+        chart_violations=chart_violations
+    )
 
 @app.route('/camera/delete/<int:camera_id>', methods=['POST'])
 @login_required

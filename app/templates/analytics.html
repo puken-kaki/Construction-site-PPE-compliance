@@ -1,0 +1,153 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="min-h-screen bg-zinc-950 text-zinc-200 p-6 md:p-10">
+    <div class="mb-8">
+        <h1 class="text-2xl font-semibold tracking-tight text-zinc-100">Safety Statistics</h1>
+        <p class="text-xs font-mono text-zinc-500 mt-1">Weekly reports on safety rules and recorded violations</p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div class="bg-zinc-900 border border-zinc-800 rounded-lg p-5">
+            <span class="text-xs font-mono text-zinc-500 uppercase tracking-wider">Today's Safety Score</span>
+            <div class="flex items-baseline space-x-2 mt-2">
+                <span class="text-3xl font-semibold tracking-tight text-amber-500">{{ today_compliance_rate }}%</span>
+            </div>
+            <p class="text-xs font-mono text-zinc-600 mt-2">Goal is 95% or higher</p>
+        </div>
+
+        <div class="bg-zinc-900 border border-zinc-800 rounded-lg p-5">
+            <span class="text-xs font-mono text-zinc-500 uppercase tracking-wider">Today's Incidents</span>
+            <div class="flex items-baseline space-x-2 mt-2">
+                <span class="text-3xl font-semibold tracking-tight text-red-500">{{ today_violations }}</span>
+                <span class="text-xs text-zinc-500">helmet violations</span>
+            </div>
+            <p class="text-xs font-mono text-zinc-600 mt-2">Found automatically by cameras</p>
+        </div>
+
+        <div class="bg-zinc-900 border border-zinc-800 rounded-lg p-5">
+            <span class="text-xs font-mono text-zinc-500 uppercase tracking-wider">Active Cameras</span>
+            <div class="flex items-baseline space-x-2 mt-2">
+                <span class="text-3xl font-semibold tracking-tight text-zinc-300">Active</span>
+            </div>
+            <p class="text-xs font-mono text-zinc-600 mt-2">Watching live right now</p>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="lg:col-span-2 bg-zinc-900 border border-zinc-800 rounded-lg p-6">
+            <div class="mb-4">
+                <h3 class="text-sm font-semibold tracking-tight text-zinc-300">Weekly Violations</h3>
+                <p class="text-xs font-mono text-zinc-500">Total number of rules broken over the last 7 days</p>
+            </div>
+            <div class="h-80 relative">
+                <canvas id="violationsTrendChart"></canvas>
+            </div>
+        </div>
+
+        <div class="bg-zinc-900 border border-zinc-800 rounded-lg p-6 flex flex-col justify-between">
+            <div class="mb-4">
+                <h3 class="text-sm font-semibold tracking-tight text-zinc-300">Current Safety Level</h3>
+                <p class="text-xs font-mono text-zinc-500">Percentage of safe actions out of all movements seen today</p>
+            </div>
+            <div class="h-64 relative flex items-center justify-center">
+                <canvas id="complianceGaugeChart"></canvas>
+                <div class="absolute inset-y-0 flex flex-col items-center justify-end pb-8">
+                    <span class="text-4xl font-bold tracking-tight text-zinc-100">{{ today_compliance_rate }}%</span>
+                    <span class="text-2xs font-mono text-zinc-500 uppercase tracking-widest mt-1">Safe Score</span>
+                </div>
+            </div>
+            <div class="border-t border-zinc-800/80 pt-4 text-center">
+                <p class="text-xs font-mono text-zinc-400">
+                    {% if today_compliance_rate >= 95.0 %}
+                    <span class="text-emerald-500">● Good</span> - Everything is safe.
+                    {% else %}
+                    <span class="text-red-500">▲ Action Required</span> - Too many violations.
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    // Config common dark styles
+    const fontStack = "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace";
+    const gridColor = '#27272a'; // zinc-800
+    const labelColor = '#71717a'; // zinc-500
+
+    // 1. Violations Trend Chart
+    const trendCtx = document.getElementById('violationsTrendChart').getContext('2d');
+    new Chart(trendCtx, {
+        type: 'line',
+        data: {
+            labels: {{ chart_dates | tojson }},
+            datasets: [{
+                label: 'Violations Found',
+                data: {{ chart_violations | tojson }},
+                borderColor: '#f59e0b', // Tailwind amber-500
+                backgroundColor: 'rgba(245, 158, 11, 0.05)',
+                borderWidth: 2,
+                fill: true,
+                tension: 0.35,
+                pointBackgroundColor: '#f59e0b',
+                pointHoverRadius: 6
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false }
+            },
+            scales: {
+                x: {
+                    grid: { color: gridColor },
+                    ticks: { color: labelColor, font: { family: fontStack, size: 10 } }
+                },
+                y: {
+                    grid: { color: gridColor },
+                    ticks: { color: labelColor, font: { family: fontStack, size: 10 }, stepSize: 1 },
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+
+    // 2. Compliance Gauge Chart (Doughnut with 180 circumference)
+    const gaugeCtx = document.getElementById('complianceGaugeChart').getContext('2d');
+    
+    // We compute compliance and non-compliance to construct the doughnut pieces
+    const complianceVal = {{ today_compliance_rate }};
+    const nonComplianceVal = (100 - complianceVal) > 0 ? (100 - complianceVal) : 0;
+
+    new Chart(gaugeCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Safe', 'Not Safe'],
+            datasets: [{
+                data: [complianceVal, nonComplianceVal],
+                backgroundColor: [
+                    '#f59e0b', // Amber-500 (Matches dashboard scheme)
+                    '#27272a'  // Zinc-800
+                ],
+                borderWidth: 0,
+                borderRadius: 4,
+                cutout: '80%'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            circumference: 180,
+            rotation: -90,
+            plugins: {
+                legend: { display: false },
+                tooltip: { enabled: false }
+            }
+        }
+    });
+</script>
+{% endblock %}

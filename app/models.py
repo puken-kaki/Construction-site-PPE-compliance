@@ -38,3 +38,15 @@ class Camera(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
 
     violations = db.relationship('Violation', backref='camera', lazy=True, cascade='all, delete-orphan')
+
+
+class DailyStat(db.Model):
+    __tablename__ = 'daily_stats'
+
+    id = db.Column(db.Integer, primary_key=True)
+    camera_id = db.Column(db.Integer, db.ForeignKey('cameras.id'), nullable=False)
+    date = db.Column(db.Date, nullable=False)
+    compliant_count = db.Column(db.Integer, default=0)
+    violation_count = db.Column(db.Integer, default=0)
+
+    __table_args__ = (db.UniqueConstraint('camera_id', 'date', name='_camera_date_uc'),)

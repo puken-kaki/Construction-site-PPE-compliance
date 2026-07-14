@@ -34,6 +34,7 @@ class CameraStreamWorker(threading.Thread):
 
         self.violations = {}
         self.alerted = set()
+        self.compliant_logged = set()
 
         self.bot = telebot.TeleBot(self.bot_token) if self.bot_token else None
         cap_info = cv2.VideoCapture(self.video_path)
@@ -70,9 +71,9 @@ class CameraStreamWorker(threading.Thread):
     
     def save_violation_to_db(self, cropped_frame, full_frame, person_id):
         from extensions import db
-        from models import Violation, Camera
+        from models import Violation, Camera, DailyStat
         import uuid
-        from datetime import datetime, timezone
+        from datetime import datetime, timezone, date
 
         base_dir = os.path.dirname(os.path.abspath(__file__))
         violations_dir = os.path.join(base_dir, 'static', 'uploads', 'violations')
@@ -101,6 +102,15 @@ class CameraStreamWorker(threading.Thread):
                         user_id=camera.user_id
                     )
                     db.session.add(new_violation)
+
+                    today = date.today()
+                    stat = DailyStat.query.filter_by(camera_id=self.camera_id, date=today).first()
+                    if not stat:
+                        stat = DailyStat(camera_id=self.camera_id, date=today, compliant_count=0, violation_count=1)
+                        db.session.add(stat)
+                    else:
+                        stat.violation_count += 1
+
                     db.session.commit()
 
                     now_str = datetime.now(timezone.utc).strftime("%H:%M:%S")
@@ -110,6 +120,29 @@ class CameraStreamWorker(threading.Thread):
                         "time": now_str,
                         "type": "Helmet Missing"
                     })
+            except Exception as e:
+                db.session.rollback()
+                print(e)
+                raise
+
+    
+    def log_compliant_detection_to_db(self, person_id):
+        from extensions import db
+        from models import DailyStat
+        from datetime import date
+
+        with self.app_context:
+            try:
+                today = date.today()
+                stat = DailyStat.query.filter_by(camera_id=self.camera_id, date=today).first()
+
+                if not stat:
+                    stat = DailyStat(camera_id=self.camera_id, date=today, compliant_count=1, violation_count=0)
+                    db.session.add(stat)
+                else:
+                    stat.compliant_count += 1
+
+                db.session.commit()
             except Exception as e:
                 db.session.rollback()
 
@@ -206,6 +239,10 @@ class CameraStreamWorker(threading.Thread):
                     self.violations.pop(p_id, None)
                     self.alerted.discard(p_id)
 
+                    if p_id not in self.compliant_logged:
+                        self.compliant_logged.add(p_id)
+                        self.log_compliant_detection_to_db(p_id) #
+
                 cv2.rectangle(frame, (x1, y1), (x2, y2), color, 2)
                 cv2.putText(frame, f"ID:{p_id}", (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.6, color, 2)
 
@@ -214,6 +251,10 @@ class CameraStreamWorker(threading.Thread):
                 if old_id not in current_frame_ids:
                     self.violations.pop(old_id, None)
                     self.alerted.discard(old_id)
+
+            for old_id in list(self.compliant_logged):
+                if old_id not in current_frame_ids:
+                    self.compliant_logged.discard(old_id)
 
             ret, jpeg = cv2.imencode('.jpg', frame)
             if ret:
