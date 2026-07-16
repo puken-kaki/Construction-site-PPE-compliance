@@ -155,7 +155,7 @@ def violation_logs():
 @login_required
 def analytics():
     today = date.today()
-    today_stats = DailyStat.query.filter_by(date=today).all()
+    today_stats = DailyStat.query.filter_by(date=today, user_id=current_user.id).all()
 
     today_compliant = sum(s.compliant_count for s in today_stats)
     today_violations = sum(s.violation_count for s in today_stats)
@@ -170,7 +170,7 @@ def analytics():
         DailyStat.date,
         func.sum(DailyStat.compliant_count).label('compliant'),
         func.sum(DailyStat.violation_count).label('violations')
-    ).filter(DailyStat.date >= seven_days_ago)\
+    ).filter(DailyStat.date >= seven_days_ago, DailyStat.user_id == current_user.id)\
     .group_by(DailyStat.date)\
     .order_by(DailyStat.date).all()
 

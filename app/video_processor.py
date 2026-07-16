@@ -104,9 +104,9 @@ class CameraStreamWorker(threading.Thread):
                     db.session.add(new_violation)
 
                     today = date.today()
-                    stat = DailyStat.query.filter_by(camera_id=self.camera_id, date=today).first()
+                    stat = DailyStat.query.filter_by(camera_id=self.camera_id, user_id=camera.user_id, date=today).first()
                     if not stat:
-                        stat = DailyStat(camera_id=self.camera_id, date=today, compliant_count=0, violation_count=1)
+                        stat = DailyStat(camera_id=self.camera_id, user_id=camera.user_id, date=today, compliant_count=0, violation_count=1)
                         db.session.add(stat)
                     else:
                         stat.violation_count += 1
@@ -128,21 +128,23 @@ class CameraStreamWorker(threading.Thread):
     
     def log_compliant_detection_to_db(self, person_id):
         from extensions import db
-        from models import DailyStat
+        from models import DailyStat, Camera
         from datetime import date
 
         with self.app_context:
             try:
-                today = date.today()
-                stat = DailyStat.query.filter_by(camera_id=self.camera_id, date=today).first()
+                camera = db.session.get(Camera, self.camera_id)
+                if camera:
+                    today = date.today()
+                    stat = DailyStat.query.filter_by(camera_id=self.camera_id, user_id=camera.user_id, date=today).first()
 
-                if not stat:
-                    stat = DailyStat(camera_id=self.camera_id, date=today, compliant_count=1, violation_count=0)
-                    db.session.add(stat)
-                else:
-                    stat.compliant_count += 1
+                    if not stat:
+                        stat = DailyStat(camera_id=self.camera_id, user_id=camera.user_id, date=today, compliant_count=1, violation_count=0)
+                        db.session.add(stat)
+                    else:
+                        stat.compliant_count += 1
 
-                db.session.commit()
+                    db.session.commit()
             except Exception as e:
                 db.session.rollback()
 

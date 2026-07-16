@@ -45,6 +45,7 @@ class DailyStat(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     camera_id = db.Column(db.Integer, db.ForeignKey('cameras.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     date = db.Column(db.Date, nullable=False)
     compliant_count = db.Column(db.Integer, default=0)
     violation_count = db.Column(db.Integer, default=0)
