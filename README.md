@@ -1,28 +1,29 @@
-## Construction Site PPE Compliance Monitoring System
+# Construction Site PPE Compliance Monitoring System
 
-A real-time, multi-camera PPE (Helmet) compliance monitoring system designed for industrial environments. The application enables safety managers to manage multiple camera streams via custom RTSP links, run independent background worker threads for real-time object tracking, and receive automated violation alerts directly in Telegram.
+A real-time multi-camera PPE (Helmet) compliance monitoring system made for construction sites. The app allows safety managers to manage multiple cameras via RTSP links, run background processes for object tracking and receive violation alerts in Telegram through a bot.
 
-## Features
+# Features
 
-* **Multi-Camera Management**: Complete CRUD interface to register, stream, and terminate camera monitoring workers with automated database resource cleanup.
-* **Isolated Multi-Threading Architecture**: Each active camera runs on its own dedicated CameraStreamWorker thread, preventing frame drops and isolating processing overhead.
-* **Object Tracking**: Integrates Ultralytics YOLO with ByteTrack to assign persistent tracking IDs to individual workers across video frames.
-* **Spatial Violation Logic**: Implements a custom bounding box overlap algorithm (inside_box) that validates helmet presence specifically in the upper head region of the detected person.
-* **Temporal Thresholding**: Evaluates the stream frame rate dynamically and triggers violations only if a worker is missing a helmet for more than 5 consecutive seconds (max_frames), reducing false positives.
-* **Asynchronous Media Alerts**: Compiles a media group containing both the cropped worker profile and the full frame, dispatching it asynchronously via the Telegram Bot API to avoid blocking the main processing loop.
-* **Reactive Frontend Polling**: Fetches and renders live violation events dynamically using localized HTMX polling via the /api/live_violations endpoint.
+* **Camera Management**: Easily add, view, update, or remove cameras through a simple dashboard that cleans up old data automatically.
+* **Smooth Streaming**: Every camera runs independently in the background, making sure video feeds do not lag or slow down.
+* **Person Tracking**: Uses Ultralytics YOLO26 and ByteTrack to detect people in the video feed and assigns a unique ID to each worker so they can be followed across frames.
+* **Smart Helmet Detection**: Checks if workers are wearing helmets by specifically looking at the area right above their shoulders, preventing false alarms from random objects.
+* **Fewer False Alerts**: Counts frames based on video speed and only triggers an alert if a worker is missing a helmet for more than 5 seconds straight.
+* **Instant Telegram Alerts**: Sends a picture of the worker and the full scene to Telegram immediately without freezing or interrupting the live video.
+* **Live Dashboard Updates**: Automatically updates the web page with new safety violations as they happen, without requiring a manual refresh.
+* **Analytics Page**: Shows weekly and daily violation statistics along with compliance rate for easy understanding. 
 
-## Tech Stack
+# Technical Stack
 
 * **Backend Framework**: Flask, Flask-SQLAlchemy, Flask-Bcrypt, Flask-Login
 * **Frontend**: HTML5, HTMX, Tailwind CSS
-* **Computer Vision**: Ultralytics YOLO26, ByteTrack, OpenCV (cv2)
-* **Alert Integration**: PyTelegramBotAPI (telebot)
+* **Computer Vision**: Ultralytics YOLO26, ByteTrack, OpenCV
+* **Alerts**: PyTelegramBotAPI (telebot)
 
-## Detection Mechanism
+# Detection Mechanism
 <img width="862" height="884" alt="diagram-export-7-5-2026-12_12_11-AM" src="https://github.com/user-attachments/assets/e86ecc1e-c366-480f-ae8a-610e045382d4" />
 
-## Local Installation
+# Local Installation
 
 ## 1. Repository setup
 Clone the repository and navigate to the root directory:
@@ -33,7 +34,7 @@ cd Construction-site-PPE-compliance
 
 ## 2. Directory Structure
 The application structure requires the trained model to be placed one directory level above the web application directory, as configured in video_processor.py:
-```text
+```bash
 ├── models/
 │   └── new_idea_ppe.pt
 └── app/
