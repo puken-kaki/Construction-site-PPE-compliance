@@ -46,7 +46,7 @@ The application structure requires the trained model to be placed one directory 
 ```
 
 ## 3. Environment Setup
-Create a virtual environment and install the required packages:
+Create a virtual environment to isolate dependencies, activate it and install the dependencies:
 ```bash
 python -m venv venv
 
@@ -55,19 +55,31 @@ venv\Scripts\activate
 # Mac and Linux
 source venv/bin/activate
 
-pip install -r requirements.txt
+pip install -r requirements.txt --extra-index-url https://download.pytorch.org/whl/cu126
 ```
 
 ## 4. Configuration
-Create a .env file in the directory level directly above app.py with the following variables:
+Create a .env file inside the app/ directory with the following variables:
 ```text
-SECRET_KEY=your_flask_secret_key
-BOT_TOKEN=your_telegram_bot_token
+SECRET_KEY=your_random_string_here
+BOT_TOKEN=your_telegram_bot_token_here
 ```
 
+**How to get your Telegram BOT_TOKEN:**a
+1. Open Telegram and search for the **@BotFather** account.
+2. Send the /start command, followed by /newbot.
+3. Follow the prompts to choose a display name and a unique username for your bot.
+4. Copy the HTTP API token provided at the end and paste it as your BOT_TOKEN.
+
 ## 5. Running the Application
-Execute the main script. The SQLite database file (site.db) will be initialized automatically inside the app/instance/ directory if it does not exist.
+Navigate into the application folder and start the script.
 ```bash
+cd app
 python app.py
 ```
 The application will be accessible at http://127.0.0.1:5000.
+
+## Tips for First-Time Users
+
+* **Finding your Telegram Chat ID:** During registration, the application will request your Telegram Chat ID. To find it, search for the @RawDataBot on Telegram, send it a /start message, and locate the "id" value nested inside the "chat" section of the returned JSON data.
+* **Using a Webcam instead of RTSP:** If you do not have a live RTSP stream link available for testing, you can input 0 in the RTSP link field to default to your machine's built-in webcam.
