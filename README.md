@@ -2,6 +2,7 @@
 
 A real-time multi-camera PPE (Helmet) compliance monitoring system made for construction sites. The app allows safety managers to manage multiple cameras via RTSP links, run background processes for object tracking and receive violation alerts in Telegram through a bot.
 
+
 # Features
 
 * **Camera Management**: Easily add, view, update, or remove cameras through a simple dashboard that cleans up old data automatically.
@@ -11,7 +12,17 @@ A real-time multi-camera PPE (Helmet) compliance monitoring system made for cons
 * **Fewer False Alerts**: Counts frames based on video speed and only triggers an alert if a worker is missing a helmet for more than 5 seconds straight.
 * **Instant Telegram Alerts**: Sends a picture of the worker and the full scene to Telegram immediately without freezing or interrupting the live video.
 * **Live Dashboard Updates**: Automatically updates the web page with new safety violations as they happen, without requiring a manual refresh.
-* **Analytics Page**: Shows weekly and daily violation statistics along with compliance rate for easy understanding. 
+* **Analytics Page**: Shows weekly and daily violation statistics along with compliance rate for easy understanding.
+
+
+# Screenshots
+
+| **Main Page** | **Analytics Page** |
+| :---: | :---: |
+| <img src="https://github.com/user-attachments/assets/8aaa6355-2bb9-4003-b397-343bac1838b5" width="100%" alt="Main Page" /> | <img src="https://github.com/user-attachments/assets/bc1bb971-5abd-49b9-b9e9-385ddfd2be26" width="100%" alt="Analytics" /> |
+| **Violation Logs** | **Settings** |
+| <img src="https://github.com/user-attachments/assets/6e8a7aca-b75a-46ea-a0bb-96d3bad4bbdd" width="100%" alt="Violation Logs" /> | <img src="https://github.com/user-attachments/assets/0dbce58d-375c-437e-85a9-9e084e18f5ba" width="100%" alt="Settings" /> |
+
 
 # Technical Stack
 
@@ -20,8 +31,10 @@ A real-time multi-camera PPE (Helmet) compliance monitoring system made for cons
 * **Computer Vision**: Ultralytics YOLO26, ByteTrack, OpenCV
 * **Alerts**: PyTelegramBotAPI (telebot)
 
+
 # Detection Mechanism
 <img width="862" height="884" alt="diagram-export-7-5-2026-12_12_11-AM" src="https://github.com/user-attachments/assets/e86ecc1e-c366-480f-ae8a-610e045382d4" />
+
 
 # Local Installation
 
@@ -65,7 +78,7 @@ SECRET_KEY=your_random_string_here
 BOT_TOKEN=your_telegram_bot_token_here
 ```
 
-**How to get your Telegram BOT_TOKEN:**a
+**How to get your Telegram BOT_TOKEN:**
 1. Open Telegram and search for the **@BotFather** account.
 2. Send the /start command, followed by /newbot.
 3. Follow the prompts to choose a display name and a unique username for your bot.
